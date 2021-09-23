@@ -1,10 +1,10 @@
 const mongoose = require('./connection');
-const seedData = require('./seeds.json');
-const Transactions = require('../models/transactionModel');
+const seedData = require('./userseed.json');
+const Users = require('../models/userModel');
 
-Transactions.deleteMany({})
+Users.deleteMany({})
     .then(() => {
-        return Transactions.insertMany(seedData)
+        return Users.insertMany(seedData)
     })
     .then(console.log)
     .catch(console.error)

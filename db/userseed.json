@@ -1,0 +1,32 @@
+[
+    {
+        "username": "Jexxe",
+        "email": {
+            "email": "jexxe@live.com"
+        },
+        "firstName": "Jesse",
+        "lastName": "Watson",
+        "location": {
+            "address1": "11251 Campfield dr",
+            "address2": "Unit 3210",
+            "city": "Jacksonville",
+            "state": "FL",
+            "zipcode": 32256
+        }
+    },
+    {
+        "username": "Jexxer",
+        "email": {
+            "email": "jwatsoncode@gmail.com"
+        },
+        "firstName": "Jesse",
+        "lastName": "Watson",
+        "location": {
+            "address1": "11251 Campfield dr",
+            "address2": "Unit 3210",
+            "city": "Jacksonville",
+            "state": "FL",
+            "zipcode": 32256
+        }
+    }
+]
