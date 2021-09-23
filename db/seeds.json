@@ -1,0 +1,26 @@
+[
+    {
+        "description": "Starbucks",
+        "date": "July 4, 2021",
+        "type": "Income",
+        "majorCategory": "Food",
+        "minorCategory": "Coffee Shops",
+        "amount": 4.95
+    },
+    {
+        "description": "McDonalds",
+        "date": "July 4, 2021",
+        "type": "Income",
+        "majorCategory": "Food",
+        "minorCategory": "Fast Food",
+        "amount": 13.25
+    },
+    {
+        "description": "Wal-Mart",
+        "date": "July 4, 2021",
+        "type": "Income",
+        "majorCategory": "Food",
+        "minorCategory": "Groceries",
+        "amount": 33.70
+    },
+]
