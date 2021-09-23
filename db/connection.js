@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const mongoURI = process.env.NODE_ENV === 'production'
     ? process.env.DB_URL
-    : 'mongodb://localhost/poc-server';
+    : 'mongodb://localhost/flint-server';
 
 mongoose.connect(mongoURI, {
     useNewUrlParser: true,
