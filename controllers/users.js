@@ -19,8 +19,6 @@ router.get("/:id", (req, res, next) => {
 
 // account creation
 router.post('/', async (req, res, next) => {
-    // const hash = bcrypt.hashSync(req.body.password, saltRounds); // this is syncronous and may cause issues later
-    // req.body.password = hash // <-- this too
     try {
         const hashedPassword = await bcrypt.hash(req.body.password, saltRounds)
         req.body.password = hashedPassword
@@ -66,10 +64,17 @@ router.put('/:id/addtransaction', (req, res, next) => {
 
 // edit exsisting transaction
 router.put('/:id/edittransaction/:tid', (req, res, next) => {
-    User.updateOne(
+    User.findOneAndUpdate(
         {_id: req.params.id},
         {$set : {"transactions.$[elem]": req.body}},
-        {arrayFilters: [{"elem._id": req.params.tid}]})
+        {arrayFilters: [{"elem._id": req.params.tid}], new: true})
+        .then((user) => res.json(user))
+        .catch(next)
+})
+
+//delete transaction
+router.put('/:id/deletetransaction/:tid', (req, res, next) => {
+    User.findOneAndUpdate({_id: req.params.id}, {$pull: {"transactions": {"_id": req.params.tid}}}, {new: true})
         .then((user) => res.json(user))
         .catch(next)
 })
