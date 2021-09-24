@@ -1,4 +1,6 @@
 const express = require('express');
+const bcrypt = require('bcrypt');
+const saltRounds = 12;
 const router = express.Router();
 
 const User = require("../models/userModel")
@@ -16,6 +18,8 @@ router.get("/:id", (req, res, next) => {
 })
 
 router.post('/', (req, res, next) => {
+    const hash = bcrypt.hashSync(req.body.password, saltRounds); // this is syncronous and may cause issues later
+    req.body.password = hash // <-- this too
     User.create(req.body)
     .then((user) => res.json(user))
     .catch(next)

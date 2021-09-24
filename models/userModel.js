@@ -61,7 +61,8 @@ const userSchema = new mongoose.Schema({
         }
     },
     transactions: [transactionSchema],
-    budgets: [budgetSchema]
+    budgets: [budgetSchema],
+    password: {type: String, required: true, minlength: 8}
 
 },  { timestamps: true })
 
