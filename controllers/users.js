@@ -17,16 +17,59 @@ router.get("/:id", (req, res, next) => {
     .catch(next);
 })
 
-router.post('/', (req, res, next) => {
-    const hash = bcrypt.hashSync(req.body.password, saltRounds); // this is syncronous and may cause issues later
-    req.body.password = hash // <-- this too
-    User.create(req.body)
-    .then((user) => res.json(user))
-    .catch(next)
+// account creation
+router.post('/', async (req, res, next) => {
+    // const hash = bcrypt.hashSync(req.body.password, saltRounds); // this is syncronous and may cause issues later
+    // req.body.password = hash // <-- this too
+    try {
+        const hashedPassword = await bcrypt.hash(req.body.password, saltRounds)
+        req.body.password = hashedPassword
+        User.create(req.body)
+        .then((user) => res.json(user))
+        .catch(next)
+    } catch {
+        res.status(201).send('Account creation failed')
+    }
+    
+})
+
+router.post('/login', async (req, res, next) => {
+
+    User.findOne({username: req.body.username})
+        .then(async (user) => {
+            if(user == null){
+                return res.status(400).send("User doesn't exist")
+            }
+            const match = await bcrypt.compare(req.body.password, user.password)
+            if(match){
+                res.json(user)
+            } else {
+                res.send('Not Allowed')
+            }
+            
+        })
+        .catch(next)
 })
 
 router.put('/:id', (req, res, next) => {
     User.findByIdAndUpdate({_id: req.params.id}, req.body, {new: true})
+        .then((user) => res.json(user))
+        .catch(next)
+})
+
+//new transaction
+router.put('/:id/addtransaction', (req, res, next) => {
+    User.findByIdAndUpdate({_id: req.params.id}, { $push: { transactions: req.body.transactions}})
+        .then((user) => res.json(user))
+        .catch(next)
+})
+
+// edit exsisting transaction
+router.put('/:id/edittransaction/:tid', (req, res, next) => {
+    User.updateOne(
+        {_id: req.params.id},
+        {$set : {"transactions.$[elem]": req.body}},
+        {arrayFilters: [{"elem._id": req.params.tid}]})
         .then((user) => res.json(user))
         .catch(next)
 })

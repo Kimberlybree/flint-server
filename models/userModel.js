@@ -30,7 +30,7 @@ const transactionSchema = new mongoose.Schema({
     category: {type: String, required: true},
     subcategory: {type: String, required: true},
     amount: {type: Number, required: true},
-},  { timestamps: true })
+})
 
 const budgetSchema = new mongoose.Schema({
     category: {type: String, required: true},
