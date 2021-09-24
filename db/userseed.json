@@ -21,6 +21,18 @@
         "subcategory": "Coffee Shops",
         "amount": 4.95
       }
+    ],
+    "budgets": [
+      {
+        "category": "Food",
+        "subcategory": "Fast Food",
+        "amount": 200.00
+      },
+      {
+        "category": "Entertainment",
+        "subcategory": "Games",
+        "amount": 50.00
+      }
     ]
   },
   {
@@ -44,6 +56,18 @@
         "category": "Food",
         "subcategory": "Fast Food",
         "amount": 13.25
+      }
+    ],
+    "budgets": [
+      {
+        "category": "Food",
+        "subcategory": "Fast Food",
+        "amount": 250.00
+      },
+      {
+        "category": "Gas",
+        "subcategory": "",
+        "amount": 80.00
       }
     ]
   }

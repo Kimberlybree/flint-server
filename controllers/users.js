@@ -5,19 +5,21 @@ const router = express.Router();
 
 const User = require("../models/userModel")
 
+// Get ALL Users
 router.get("/", (req, res, next) => {
     User.find({})
     .then((record) => res.json(record))
     .catch(next);
 })
 
+// Get Individual Users by ID
 router.get("/:id", (req, res, next) => {
     User.findById(req.params.id)
     .then((record) => res.json(record))
     .catch(next);
 })
 
-// account creation
+// Create a User (Signup)
 router.post('/', async (req, res, next) => {
     try {
         const hashedPassword = await bcrypt.hash(req.body.password, saltRounds)
@@ -31,8 +33,8 @@ router.post('/', async (req, res, next) => {
     
 })
 
+// Sign In Authentication
 router.post('/login', async (req, res, next) => {
-
     User.findOne({username: req.body.username})
         .then(async (user) => {
             if(user == null){
@@ -49,20 +51,28 @@ router.post('/login', async (req, res, next) => {
         .catch(next)
 })
 
+// Update a Users (Use carefully)
 router.put('/:id', (req, res, next) => {
     User.findByIdAndUpdate({_id: req.params.id}, req.body, {new: true})
         .then((user) => res.json(user))
         .catch(next)
 })
 
-//new transaction
-router.put('/:id/addtransaction', (req, res, next) => {
-    User.findByIdAndUpdate({_id: req.params.id}, { $push: { transactions: req.body.transactions}})
+// Delete a User and all related data
+router.delete('/:id', (req, res, next) => {
+    User.findOneAndDelete({_id: req.params.id})
         .then((user) => res.json(user))
         .catch(next)
 })
 
-// edit exsisting transaction
+// Add a transaction to the Specified User
+router.put('/:id/addtransaction', (req, res, next) => {
+    User.findByIdAndUpdate({_id: req.params.id}, { $push: { transactions: req.body.transactions}}, {new: true})
+        .then((user) => res.json(user))
+        .catch(next)
+})
+
+// Edit a existing transaction on User
 router.put('/:id/edittransaction/:tid', (req, res, next) => {
     User.findOneAndUpdate(
         {_id: req.params.id},
@@ -72,15 +82,33 @@ router.put('/:id/edittransaction/:tid', (req, res, next) => {
         .catch(next)
 })
 
-//delete transaction
+// Delete a transaction from a User
 router.put('/:id/deletetransaction/:tid', (req, res, next) => {
     User.findOneAndUpdate({_id: req.params.id}, {$pull: {"transactions": {"_id": req.params.tid}}}, {new: true})
         .then((user) => res.json(user))
         .catch(next)
 })
 
-router.delete('/:id', (req, res, next) => {
-    User.findOneAndDelete({_id: req.params.id})
+// Add a Budget to a User
+router.put('/:id/addbudget', (req, res, next) => {
+    User.findByIdAndUpdate({_id: req.params.id}, { $push: { budgets: req.body.budgets}}, {new: true})
+        .then((user) => res.json(user))
+        .catch(next)
+})
+
+// Edit a Budget on User
+router.put('/:id/editbudget/:bid', (req, res, next) => {
+    User.findOneAndUpdate(
+        {_id: req.params.id},
+        {$set : {"budgets.$[elem]": req.body}},
+        {arrayFilters: [{"elem._id": req.params.bid}], new: true})
+        .then((user) => res.json(user))
+        .catch(next)
+})
+
+// Delete a Budget from a User
+router.put('/:id/deletebudget/:bid', (req, res, next) => {
+    User.findOneAndUpdate({_id: req.params.id}, {$pull: {"budgets": {"_id": req.params.bid}}}, {new: true})
         .then((user) => res.json(user))
         .catch(next)
 })
