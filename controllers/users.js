@@ -15,26 +15,22 @@ router.get("/:id", (req, res, next) => {
     .catch(next);
 })
 
-router.post('/', (req, res) => {
-    User.create(req.body).then(record => {
-        User.find({}).then(record => {
-            res.json(record)
-        })
-    })
+router.post('/', (req, res, next) => {
+    User.create(req.body)
+    .then((user) => res.json(user))
+    .catch(next)
 })
 
-router.put('/:id', (req, res) => {
-    User.findOneAndUpdate({_id: req.params.id}, req.body)
-    .then(record => User.find({})
-        .then(record => {res.json(record)})
-    )
+router.put('/:id', (req, res, next) => {
+    User.findByIdAndUpdate({_id: req.params.id}, req.body, {new: true})
+        .then((user) => res.json(user))
+        .catch(next)
 })
 
-router.delete('/:id', (req, res) => {
-    User.findOneAndDelete({_id: req.params.id}, req.body)
-    .then(gif => User.find({})
-        .then(record => {res.json(record)})
-    )
+router.delete('/:id', (req, res, next) => {
+    User.findOneAndDelete({_id: req.params.id})
+        .then((user) => res.json(user))
+        .catch(next)
 })
 
 module.exports = router

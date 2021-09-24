@@ -3,8 +3,6 @@ const express = require('express')
 const cors = require('cors');
 
 // v=== Controllers ===v
-const budgetController = require('./controllers/budgets')
-const controller = require('./controllers/transactions')
 const userController = require('./controllers/users')
 
 const methodOverride = require('method-override')
@@ -18,8 +16,6 @@ app.use(express.urlencoded({extended:true}))
 
 // BEGIN ROUTES
 app.get('/', (req, res) => {res.send('Server utilization initiated. Begin sequencing.')})
-app.use('/transactions', controller)
-app.use('/budgets', budgetController)
 app.use('/users', userController)
 // END ROUTES
 
