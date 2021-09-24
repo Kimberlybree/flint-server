@@ -1,32 +1,48 @@
 [
-    {
-        "username": "Jexxe",
-        "email": {
-            "email": "jexxe@live.com"
-        },
-        "firstName": "Jesse",
-        "lastName": "Watson",
-        "location": {
-            "address1": "11251 Campfield dr",
-            "address2": "Unit 3210",
-            "city": "Jacksonville",
-            "state": "FL",
-            "zipcode": 32256
-        }
+  {
+    "username": "Jexxe",
+    "email": "jexxe@live.com",
+    "firstName": "Jesse",
+    "lastName": "Watson",
+    "location": {
+      "address1": "11251 Campfield dr",
+      "address2": "Unit 3210",
+      "city": "Jacksonville",
+      "state": "FL",
+      "zipcode": 32256
     },
-    {
-        "username": "Jexxer",
-        "email": {
-            "email": "jwatsoncode@gmail.com"
-        },
-        "firstName": "Jesse",
-        "lastName": "Watson",
-        "location": {
-            "address1": "11251 Campfield dr",
-            "address2": "Unit 3210",
-            "city": "Jacksonville",
-            "state": "FL",
-            "zipcode": 32256
-        }
-    }
+    "transactions": [
+      {
+        "description": "Starbucks",
+        "date": "July 4, 2021",
+        "type": "Income",
+        "category": "Food",
+        "subcategory": "Coffee Shops",
+        "amount": 4.95
+      }
+    ]
+  },
+  {
+    "username": "Jexxer",
+    "email": "jwatsoncode@gmail.com",
+    "firstName": "Jesse",
+    "lastName": "Watson",
+    "location": {
+      "address1": "11251 Campfield dr",
+      "address2": "Unit 3210",
+      "city": "Jacksonville",
+      "state": "FL",
+      "zipcode": 32256
+    },
+    "transactions": [
+      {
+        "description": "McDonalds",
+        "date": "July 4, 2021",
+        "type": "Income",
+        "category": "Food",
+        "subcategory": "Fast Food",
+        "amount": 13.25
+      }
+    ]
+  }
 ]
