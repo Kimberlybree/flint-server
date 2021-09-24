@@ -67,7 +67,7 @@ router.delete('/:id', (req, res, next) => {
 
 // Add a transaction to the Specified User
 router.put('/:id/addtransaction', (req, res, next) => {
-    User.findByIdAndUpdate({_id: req.params.id}, { $push: { transactions: req.body.transactions}}, {new: true})
+    User.findByIdAndUpdate({_id: req.params.id}, { $push: { transactions: req.body}}, {new: true})
         .then((user) => res.json(user))
         .catch(next)
 })
@@ -91,7 +91,7 @@ router.put('/:id/deletetransaction/:tid', (req, res, next) => {
 
 // Add a Budget to a User
 router.put('/:id/addbudget', (req, res, next) => {
-    User.findByIdAndUpdate({_id: req.params.id}, { $push: { budgets: req.body.budgets}}, {new: true})
+    User.findByIdAndUpdate({_id: req.params.id}, { $push: { budgets: req.body}}, {new: true})
         .then((user) => res.json(user))
         .catch(next)
 })
