@@ -4,6 +4,7 @@
     "email": "jexxe@live.com",
     "firstName": "Jesse",
     "lastName": "Watson",
+    "password": "Password1",
     "location": {
       "address1": "11251 Campfield dr",
       "address2": "Unit 3210",
@@ -27,6 +28,7 @@
     "email": "jwatsoncode@gmail.com",
     "firstName": "Jesse",
     "lastName": "Watson",
+    "password": "Password1",
     "location": {
       "address1": "11251 Campfield dr",
       "address2": "Unit 3210",
