@@ -63,7 +63,8 @@ const userSchema = new mongoose.Schema({
     transactions: [transactionSchema],
     budgets: [budgetSchema],
     password: {type: String, required: true, minlength: 8},
-    isAdmin: {type: Boolean, required: true}
+    isAdmin: {type: Boolean, required: true},
+    refreshTokens: [String]
 
 },  { timestamps: true })
 
