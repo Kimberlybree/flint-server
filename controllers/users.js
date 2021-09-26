@@ -33,12 +33,14 @@ const generateRefreshToken = (user) => {
 // ==================== verify function for jwt authentication ====================
 
 const verify = (req, res, next) => {
+    console.log(req)
     const authHeader = req.headers.authorization
     if(authHeader){
         const token = authHeader.split(" ")[1];
 
         jwt.verify(token, 'mySecretKey', (err, user) => {
             if(err){
+                console.log(err)
                 return res.status(401).json({"message": "Token is not valid"})
             }
 
@@ -77,7 +79,6 @@ router.post("/refreshtoken", (req, res) => {
                     // replaces old refreshtoken array in db with new refreshtoken array
 
                     User.findOneAndUpdate({email: dbuser.email}, { $set: { refreshTokens: filteredTokens } }, {multi: true})
-                        .then((user) => {console.log('then works')})
     
                     const newAccessToken = generateAccessToken(dbuser)
                     const newRefreshToken = generateRefreshToken(dbuser)
@@ -110,7 +111,7 @@ router.post("/refreshtoken", (req, res) => {
 
 // ==================== Get ALL Users ====================
 
-router.get("/", (req, res, next) => {
+router.get("/", verify, (req, res, next) => {
     User.find({})
     .then((record) => res.json(record))
     .catch(next);
@@ -219,10 +220,14 @@ router.delete('/:id', verify, (req, res) => {
 
 // ==================== Get Individual Users by ID ====================
 
-router.get("/:id", (req, res, next) => {
-    User.findById(req.params.id)
-    .then((record) => res.json(record))
-    .catch(next);
+router.get("/:id", verify, (req, res, next) => {
+    if(req.user.id == req.params.id || req.user.isAdmin){
+        User.findById(req.params.id)
+        .then((user) => res.json(user))
+        .catch(next);
+    } else {
+        res.status(403).json({"message": "You are not authorized"})
+    }
 })
 
 
@@ -278,10 +283,14 @@ router.put('/:id/deletetransaction/:tid', (req, res, next) => {
 
 // ==================== Add a Budget to a User ====================
 
-router.put('/:id/addbudget', (req, res, next) => {
-    User.findByIdAndUpdate({_id: req.params.id}, { $push: { budgets: req.body}}, {new: true})
-        .then((user) => res.json(user))
-        .catch(next)
+router.put('/:id/addbudget', verify, (req, res, next) => {
+    if(req.user.id == req.params.id || req.user.isAdmin){
+        User.findByIdAndUpdate({_id: req.params.id}, { $push: { budgets: req.body}}, {new: true})
+            .then((user) => res.json(user))
+            .catch(next)
+    } else {
+        res.status(403).json({"message": "You are not authorized"})
+    }
 })
 
 // ==================== Edit a Budget on User ====================
@@ -297,10 +306,15 @@ router.put('/:id/editbudget/:bid', (req, res, next) => {
 
 // ==================== Delete a Budget from a User ====================
 
-router.put('/:id/deletebudget/:bid', (req, res, next) => {
-    User.findOneAndUpdate({_id: req.params.id}, {$pull: {"budgets": {"_id": req.params.bid}}}, {new: true})
-        .then((user) => res.json(user))
-        .catch(next)
+router.put('/:id/deletebudget/:bid', verify, (req, res, next) => {
+    console.log(req)
+    if(req.user.id == req.params.id || req.user.isAdmin){
+        User.findOneAndUpdate({_id: req.params.id}, {$pull: {"budgets": {"_id": req.params.bid}}}, {new: true})
+            .then((user) => res.json(user))
+            .catch(next)
+    } else {
+        res.status(403).json({"message": "You are not authorized"})
+    }
 })
 
 module.exports = router
