@@ -33,7 +33,6 @@ const generateRefreshToken = (user) => {
 // ==================== verify function for jwt authentication ====================
 
 const verify = (req, res, next) => {
-    console.log(req)
     const authHeader = req.headers.authorization
     if(authHeader){
         const token = authHeader.split(" ")[1];
@@ -248,29 +247,41 @@ router.get('/:id/gettransaction/:tid', (req, res, next) => {
 
 // ==================== Add a transaction to the Specified User ====================
 
-router.put('/:id/addtransaction', (req, res, next) => {
-    User.findByIdAndUpdate({_id: req.params.id}, { $push: { transactions: req.body}}, {new: true})
-    .then((user) => res.json(user))
-    .catch(next)
+router.put('/:id/addtransaction', verify, (req, res, next) => {
+    if(req.user.id == req.params.id || req.user.isAdmin){
+        User.findByIdAndUpdate({_id: req.params.id}, { $push: { transactions: req.body}}, {new: true})
+        .then((user) => res.json(user))
+        .catch(next)
+    } else {
+        res.status(403).json({"message": "You are not authorized"})
+    }
 })
 
 // ==================== Edit a existing transaction on User ====================
 
-router.put('/:id/edittransaction/:tid', (req, res, next) => {
-    User.findOneAndUpdate(
-        {_id: req.params.id},
-        {$set : {"transactions.$[elem]": req.body}},
-        {arrayFilters: [{"elem._id": req.params.tid}], new: true})
-        .then((user) => res.json(user))
-        .catch(next)
+router.put('/:id/edittransaction/:tid', verify, (req, res, next) => {
+    if(req.user.id == req.params.id || req.user.isAdmin){
+        User.findOneAndUpdate(
+            {_id: req.params.id},
+            {$set : {"transactions.$[elem]": req.body}},
+            {arrayFilters: [{"elem._id": req.params.tid}], new: true})
+            .then((user) => res.json(user))
+            .catch(next)
+    } else {
+        res.status(403).json({"message": "You are not authorized"})
+    }
 })
 
 // ==================== Delete a transaction from a User ====================
 
-router.put('/:id/deletetransaction/:tid', (req, res, next) => {
-    User.findOneAndUpdate({_id: req.params.id}, {$pull: {"transactions": {"_id": req.params.tid}}}, {new: true})
-        .then((user) => res.json(user))
-        .catch(next)
+router.put('/:id/deletetransaction/:tid', verify, (req, res, next) => {
+    if(req.user.id == req.params.id || req.user.isAdmin){
+        User.findOneAndUpdate({_id: req.params.id}, {$pull: {"transactions": {"_id": req.params.tid}}}, {new: true})
+            .then((user) => res.json(user))
+            .catch(next)
+    } else {
+        res.status(403).json({"message": "You are not authorized"})
+    }
 })
 
 
@@ -295,19 +306,22 @@ router.put('/:id/addbudget', verify, (req, res, next) => {
 
 // ==================== Edit a Budget on User ====================
 
-router.put('/:id/editbudget/:bid', (req, res, next) => {
-    User.findOneAndUpdate(
-        {_id: req.params.id},
-        {$set : {"budgets.$[elem]": req.body}},
-        {arrayFilters: [{"elem._id": req.params.bid}], new: true})
-        .then((user) => res.json(user))
-        .catch(next)
+router.put('/:id/editbudget/:bid', verify, (req, res, next) => {
+    if(req.user.id == req.params.id || req.user.isAdmin){
+        User.findOneAndUpdate(
+            {_id: req.params.id},
+            {$set : {"budgets.$[elem]": req.body}},
+            {arrayFilters: [{"elem._id": req.params.bid}], new: true})
+            .then((user) => res.json(user))
+            .catch(next)
+    } else {
+        res.status(403).json({"message": "You are not authorized"})
+    }
 })
 
 // ==================== Delete a Budget from a User ====================
 
 router.put('/:id/deletebudget/:bid', verify, (req, res, next) => {
-    console.log(req)
     if(req.user.id == req.params.id || req.user.isAdmin){
         User.findOneAndUpdate({_id: req.params.id}, {$pull: {"budgets": {"_id": req.params.bid}}}, {new: true})
             .then((user) => res.json(user))
