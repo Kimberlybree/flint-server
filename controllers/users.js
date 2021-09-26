@@ -13,8 +13,25 @@ const saltRounds = 12;
 //             _  | |\ \ /\ / /  | |  
 //            | |_| | \ V  V /   | |  
 //             \___/   \_/\_/    |_|  
-                    
+
+// ==================== Generate a new Access token ====================
+
+const generateAccessToken = (user) => {
+    return jwt.sign({id: user._id, email: user.email, isAdmin: user.isAdmin},
+        'mySecretKey',
+        {expiresIn: "15m"}
+)}
+
+// ==================== Generate a new Refresh Token ====================
+
+const generateRefreshToken = (user) => {
+    return jwt.sign({id: user._id, email: user.email, isAdmin: user.isAdmin},
+        'myRefreshSecretKey',
+        {expiresIn: "15m"}
+)}
+
 // ==================== verify function for jwt authentication ====================
+
 const verify = (req, res, next) => {
     const authHeader = req.headers.authorization
     if(authHeader){
@@ -48,26 +65,33 @@ router.post("/refreshtoken", (req, res) => {
             }
             jwt.verify(refreshToken, 'myRefreshSecretKey', (err, user) => {
                 // if err, console.log the err
-                err && console.log(err)
+                if(err){
+                    console.log(err)
+                    return res.status(400).json({"message": 'Expired Token'})
+                } else {
+                    // filter tokens so that the current token is removed
+                    // if token is not equal to refreshToken it can stay. otherwise if it is exact match, filter it out.
 
-                // filter tokens so that the current token is removed
-                // if token is not equal to refreshToken it can stay. otherwise if it is exact match, filter it out.
-                console.log(user)
-                const refreshTokens = dbuser.refreshTokens.filter((token) => token !== refreshToken)
+                    const filteredTokens = dbuser.refreshTokens.filter((token) => token !== refreshToken)
+                    
+                    // replaces old refreshtoken array in db with new refreshtoken array
 
-                // replaces old refreshtoken array in db with new refreshtoken array
-                User.findOneAndUpdate({email: dbuser.email}, { $set: {refreshTokens: refreshTokens}}, {new: true})
-
-                const newAccessToken = generateAccessToken(dbuser)
-                const newRefreshToken = generateAccessToken(dbuser)
-
-                User.findOneAndUpdate({email: dbuser.email}, { $push: { refreshTokens: newRefreshToken }}, {new: true})
-                    .then((user) => {
-                        res.status(200).json({
-                            accessToken: newAccessToken,
-                            refreshToken: newRefreshToken,
+                    User.findOneAndUpdate({email: dbuser.email}, { $set: { refreshTokens: filteredTokens } }, {multi: true})
+                        .then((user) => {console.log('then works')})
+    
+                    const newAccessToken = generateAccessToken(dbuser)
+                    const newRefreshToken = generateRefreshToken(dbuser)
+    
+                    User.findOneAndUpdate({email: dbuser.email}, { $push: { refreshTokens: newRefreshToken }}, {new: true})
+                        .then((user) => {
+                            res.status(200).json({
+                                accessToken: newAccessToken,
+                                refreshToken: newRefreshToken,
+                            })
                         })
-                    })
+
+                }
+
                 
             })
         })
@@ -76,20 +100,6 @@ router.post("/refreshtoken", (req, res) => {
 
 })
 
-// ==================== Generate a new Access token ====================
-
-const generateAccessToken = (user) => {
-    return jwt.sign({id: user._id, email: user.email, isAdmin: user.isAdmin},
-        'mySecretKey',
-        {expiresIn: "15m"}
-)}
-
-// ==================== Generate a new Refresh Token ====================
-
-const generateRefreshToken = (user) => {
-    return jwt.sign({id: user._id, email: user.email, isAdmin: user.isAdmin},
-        'myRefreshSecretKey'
-)}
 
 
 //             _   _                   
@@ -179,7 +189,7 @@ router.post('/logout', verify, (req, res, next) => {
     User.findOne({email: req.body.email})
     .then((user) => {
         const refreshTokens = user.refreshTokens.filter((token) => token !== refreshToken)
-        User.findOneAndUpdate({email: user.email}, { $set: {refreshTokens: refreshTokens}})
+        User.findOneAndUpdate({email: user.email}, { $set: {refreshTokens: refreshTokens}}, {multi: true})
         .then(() => {
             res.status(200).json({"message": "You logged out successfully"})
         })
