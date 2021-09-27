@@ -12,6 +12,7 @@ const client = textmagicClient.ApiClient.instance;
 const auth = client.authentications['BasicAuth'];
 const api = new textmagicClient.TextMagicApi();
 
+// add to .env
 auth.username = 'jessewatson'
 auth.password = '4fY5cj7lCBNprj81uVw4mFqJqWiy3W'
 
@@ -218,8 +219,10 @@ router.put('/checksmscode', (req, res) => {
     }
     api.checkPhoneVerificationCodeTFA(input)
         .then((data) => {
-            console.log(data.status)
-            res.json(data)
+            if(data === null){
+                console.log(data)
+                res.json({"status": 200})
+            }
         })
         .catch((err) => {
             res.json(err)
