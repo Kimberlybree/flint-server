@@ -17,6 +17,7 @@
     "jsonwebtoken": "^8.5.1",
     "method-override": "^3.0.0",
     "mongoose": "^5.13.8",
+    "textmagic-client": "^2.0.1588",
     "validator": "^13.6.0"
   }
 }

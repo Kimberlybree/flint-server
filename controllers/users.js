@@ -6,6 +6,16 @@ const jwt = require('jsonwebtoken');
 const User = require("../models/userModel")
 const saltRounds = 12;
 
+// Text-magic
+const textmagicClient = require('textmagic-client');
+const client = textmagicClient.ApiClient.instance;
+const auth = client.authentications['BasicAuth'];
+const api = new textmagicClient.TextMagicApi();
+
+auth.username = 'jessewatson'
+auth.password = '4fY5cj7lCBNprj81uVw4mFqJqWiy3W'
+
+
 
 
 //                 ___        _______ 
@@ -119,7 +129,7 @@ router.get("/", verify, (req, res, next) => {
 
 // ==================== Create a User (Signup) ====================
 
-router.post('/', async (req, res, next) => {
+router.put('/', async (req, res, next) => {
     try {
         const hashedPassword = await bcrypt.hash(req.body.password, saltRounds)
         req.body.password = hashedPassword
@@ -181,6 +191,41 @@ router.post('/login', async (req, res, next) => {
     .catch(next)
 })
 
+// ==================== Text-Verification (send-code) =================
+router.post('/sendsmscode', (req, res) => {
+    
+    const input = {
+        phone: req.body.phone,
+        brand: "Your Flint",
+        codeLength: 6,
+        // Optional parameters
+        workflowId: "6",
+        country: "US",
+    }
+    api.sendPhoneVerificationCodeTFA(input)
+        .then((data) => {
+            res.json(data)
+        }).catch((err)=> console.log(err))
+})
+
+// ==================== Text-Verification (verify-code) =================
+
+router.put('/checksmscode', (req, res) => {
+
+    const input = {
+        code: req.body.code,
+        verifyId: req.body.verifyId
+    }
+    api.checkPhoneVerificationCodeTFA(input)
+        .then((data) => {
+            console.log(data.status)
+            res.json(data)
+        })
+        .catch((err) => {
+            res.json(err)
+        })
+        
+})
 
 // ==================== User logout ====================
 
