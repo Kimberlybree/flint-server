@@ -64,7 +64,10 @@ const userSchema = new mongoose.Schema({
     budgets: [budgetSchema],
     password: {type: String, required: true, minlength: 8},
     isAdmin: {type: Boolean, required: true},
-    refreshTokens: [String]
+    refreshTokens: [String],
+    profilePicURL: String,
+    phone: Number,
+    smsOnLogin: {type: Boolean, default: false}
 
 },  { timestamps: true })
 

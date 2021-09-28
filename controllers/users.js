@@ -12,6 +12,7 @@ const client = textmagicClient.ApiClient.instance;
 const auth = client.authentications['BasicAuth'];
 const api = new textmagicClient.TextMagicApi();
 
+
 // add to .env
 auth.username = 'jessewatson'
 auth.password = '4fY5cj7lCBNprj81uVw4mFqJqWiy3W'
@@ -258,11 +259,27 @@ router.put('/:id', (req, res, next) => {
 
 // ==================== Update a users name ====================
 
+router.put('/changename/:id', verify, (req, res, next) => {
+    User.findByIdAndUpdate({_id: req.params.id}, { $set: {firstName: req.body.firstName, lastName: req.body.lastName}}, {new: true})
+        .then((user) => res.json(user))
+        .catch(next)
+})
 
+// ==================== Update a users email ====================
 
+router.put('/changeemail/:id', verify, (req, res, next) => {
+    User.findByIdAndUpdate({_id: req.params.id}, { $set: {email: req.body.email}}, {new: true})
+        .then((user) => res.json(user))
+        .catch(next)
+})
 
+// ==================== Upload User Image ====================
 
-
+router.put('/uploadimage/:id', verify, (req, res, next) => {
+    User.findByIdAndUpdate({_id: req.params.id}, { $set: {profilePicURL: req.body.image}}, {new: true})
+        .then((users) => res.json(users))
+        .catch(next)
+})
 
 // ==================== Delete a User and all related data ====================
 
