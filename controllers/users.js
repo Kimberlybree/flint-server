@@ -85,21 +85,24 @@ router.post("/refreshtoken", (req, res) => {
                     // if token is not equal to refreshToken it can stay. otherwise if it is exact match, filter it out.
 
                     const filteredTokens = dbuser.refreshTokens.filter((token) => token !== refreshToken)
-                    
+
                     // replaces old refreshtoken array in db with new refreshtoken array
 
-                    User.findOneAndUpdate({email: dbuser.email}, { $set: { refreshTokens: filteredTokens } }, {multi: true})
-    
-                    const newAccessToken = generateAccessToken(dbuser)
-                    const newRefreshToken = generateRefreshToken(dbuser)
-    
-                    User.findOneAndUpdate({email: dbuser.email}, { $push: { refreshTokens: newRefreshToken }}, {new: true})
+                    User.findOneAndUpdate({email: dbuser.email}, { $set: { refreshTokens: filteredTokens } }, {multi: true, new:true})
                         .then((user) => {
-                            res.status(200).json({
-                                accessToken: newAccessToken,
-                                refreshToken: newRefreshToken,
+                            const newAccessToken = generateAccessToken(dbuser)
+                            const newRefreshToken = generateRefreshToken(dbuser)
+
+                            User.findOneAndUpdate({email: dbuser.email}, { $push: { refreshTokens: newRefreshToken }}, {new: true})
+                                .then((user) => {
+                                    res.status(200).json({
+                                        accessToken: newAccessToken,
+                                        refreshToken: newRefreshToken,
+                                })
                             })
                         })
+    
+    
 
                 }
 
@@ -252,6 +255,14 @@ router.put('/:id', (req, res, next) => {
     .then((user) => res.json(user))
     .catch(next)
 })
+
+// ==================== Update a users name ====================
+
+
+
+
+
+
 
 // ==================== Delete a User and all related data ====================
 
