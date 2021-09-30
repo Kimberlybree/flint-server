@@ -209,7 +209,15 @@ router.put('/removeauth/:id', verify, (req, res, next) => {
                 token: req.body.token,
                 window: 6
             })
-            if(isTokenValid){
+            if(isTokenValid && user.preferedAuth === 1){
+                User.findByIdAndUpdate({_id: req.params.id}, { $set: { authSecret: "", isAuthEnabled: false, preferedAuth: 0}}, {new: true})
+                .then((newUser) => {
+                    res.json({
+                        message: "Authenticator Removed",
+                        user: newUser
+                    })
+                })
+            } else if(isTokenValid && user.preferedAuth !== 1){
                 User.findByIdAndUpdate({_id: req.params.id}, { $set: { authSecret: "", isAuthEnabled: false}}, {new: true})
                 .then((newUser) => {
                     res.json({
@@ -286,10 +294,25 @@ router.post('/login', async (req, res, next) => {
                     // prompt user for authenticator
                     res.json({
                         message: 'Authenticator required',
-
                     })
                 } else if (user.isSmsVerified && user.preferedAuth === 2){
-                    // prompt user for sms text code
+                    const input = {
+                        phone: `1${user.phone}`,
+                        brand: "Your Flint",
+                        codeLength: 6,
+                        // Optional parameters
+                        workflowId: "6",
+                        country: "US",
+                    }
+                    api.sendPhoneVerificationCodeTFA(input)
+                        .then((data) => {
+                            const number = user.phone
+                            res.json({
+                                smsData: data,
+                                message: 'SMS required',
+                                endingIn: `${number.toString().substr(-4)}`
+                            })
+                        }).catch((err)=> console.log(err))
                 } else {
                     // Generate an access token
                     const accessToken = generateAccessToken(user)
@@ -372,6 +395,46 @@ router.put('/checksmscode/:id', (req, res) => {
             res.json(err)
         })
         
+})
+
+// ==================== SMS login ====================
+
+router.post('/verifysmslogin/', (req, res, next) => {
+    User.findOne({email: req.body.email})
+        .then((user) => {
+            const input = {
+                code: req.body.code,
+                verifyId: req.body.verifyId
+            }
+            api.checkPhoneVerificationCodeTFA(input)
+                .then((data) => {
+                    if(data === null){
+                        const match = bcrypt.compare(req.body.password, user.password)
+                        if(match){
+                            const accessToken = generateAccessToken(user)
+                            const refreshToken = generateRefreshToken(user)
+                            User.findOneAndUpdate({email: user.email}, { $push: { refreshTokens: refreshToken }}, {new: true})
+                            .then((newUser) => {
+                                res.json({
+                                    message: 'Code is valid',
+                                    userobj: newUser,
+                                    accessToken: accessToken,
+                                    refreshToken: refreshToken,
+                                })
+                            })
+                        } else {
+                            res.json({message: 'Passwords do not match'})
+                        }
+                    }
+                })
+                .catch((err) => {
+                    res.json({
+                        err: err,
+                        message: 'Code is not valid'
+                    })
+                })
+        })
+        .catch(next)
 })
 
 // ==================== Remove Phone Auth ====================
