@@ -163,6 +163,41 @@ router.put('/verifytempsecret/:id', verify, (req, res, next) => {
         .catch(next)
 })
 
+// ==================== Verify Auth Login ====================
+
+router.post('/verifyauthlogin/', (req, res, next) => {
+    User.findOne({email: req.body.email})
+        .then((user) => {
+            const isTokenValid = speakeasy.totp.verify({
+                secret: user.authSecret,
+                encoding: 'base32',
+                token: req.body.token,
+                window: 6
+            })
+            if(isTokenValid){
+                const match = bcrypt.compare(req.body.password, user.password)
+                if(match){
+                    const accessToken = generateAccessToken(user)
+                    const refreshToken = generateRefreshToken(user)
+                    User.findOneAndUpdate({email: user.email}, { $push: { refreshTokens: refreshToken }}, {new: true})
+                    .then((newUser) => {
+                        res.json({
+                            message: 'Token is valid',
+                            userobj: newUser,
+                            accessToken: accessToken,
+                            refreshToken: refreshToken,
+                        })
+                    })
+                } else {
+                    res.json({message: 'Passwords do not match'})
+                }
+            } else {
+                res.json({message: 'Token not valid'})
+            }
+        })
+        .catch(next)
+})
+
 // ==================== disable auth ====================
 
 router.put('/removeauth/:id', verify, (req, res, next) => {
@@ -246,20 +281,49 @@ router.post('/login', async (req, res, next) => {
         }
         const match = await bcrypt.compare(req.body.password, user.password)
         if(match){
-            // Generate an access token
-            const accessToken = generateAccessToken(user)
-            const refreshToken = generateRefreshToken(user)
-            
-            // TODO add refresh token to user in db
-            console.log('pushing refreshToken to db')
-            User.findOneAndUpdate({email: user.email}, { $push: { refreshTokens: refreshToken }}, {new: true})
-            .then((user) => {
-                res.json({
-                    userobj: user,
-                    accessToken: accessToken,
-                    refreshToken: refreshToken
+            if(user.isAuthEnabled || user.isSmsVerified){
+                if(user.isAuthEnabled && user.preferedAuth === 1){
+                    // prompt user for authenticator
+                    res.json({
+                        message: 'Authenticator required',
+
+                    })
+                } else if (user.isSmsVerified && user.preferedAuth === 2){
+                    // prompt user for sms text code
+                } else {
+                    // Generate an access token
+                    const accessToken = generateAccessToken(user)
+                    const refreshToken = generateRefreshToken(user)
+                    
+                    // TODO add refresh token to user in db
+                    console.log('pushing refreshToken to db')
+                    User.findOneAndUpdate({email: user.email}, { $push: { refreshTokens: refreshToken }}, {new: true})
+                    .then((user) => {
+                        res.json({
+                            userobj: user,
+                            accessToken: accessToken,
+                            refreshToken: refreshToken,
+                            message: 'OK'
+                        })
+                    })
+                }
+            } else {
+                // Generate an access token
+                const accessToken = generateAccessToken(user)
+                const refreshToken = generateRefreshToken(user)
+                
+                // TODO add refresh token to user in db
+                console.log('pushing refreshToken to db')
+                User.findOneAndUpdate({email: user.email}, { $push: { refreshTokens: refreshToken }}, {new: true})
+                .then((user) => {
+                    res.json({
+                        userobj: user,
+                        accessToken: accessToken,
+                        refreshToken: refreshToken,
+                        message: 'OK'
+                    })
                 })
-            })
+            }
         } else {
             res.send('Not Allowed')
         }
