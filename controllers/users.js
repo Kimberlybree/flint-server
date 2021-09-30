@@ -12,6 +12,9 @@ const client = textmagicClient.ApiClient.instance;
 const auth = client.authentications['BasicAuth'];
 const api = new textmagicClient.TextMagicApi();
 
+// auth app
+const speakeasy = require('speakeasy');
+
 
 // add to .env
 auth.username = 'jessewatson'
@@ -117,6 +120,74 @@ router.post("/refreshtoken", (req, res) => {
 
 
 
+
+
+//             ___                _                    
+//            / __|_ __  ___ __ _| |_____ __ _ ____  _ 
+//            \__ \ '_ \/ -_) _` | / / -_) _` (_-< || |
+//            |___/ .__/\___\__,_|_\_\___\__,_/__/\_, |
+//                |_|                             |__/ 
+
+// ==================== Send a temp secret ======================
+
+router.put('/gettempsecret/:id', verify, (req, res, next) => {
+    const temp_secret = speakeasy.generateSecret()
+    User.findByIdAndUpdate({_id: req.params.id}, { $set: {tempSecret: temp_secret.base32}}, {new: true})
+        .then((user) => res.json(user.tempSecret))
+        .catch(next)
+})
+
+// ==================== verify temp secret ====================
+
+router.put('/verifytempsecret/:id', verify, (req, res, next) => {
+    User.findById({_id: req.params.id})
+        .then((user) => {
+            const isTokenValid = speakeasy.totp.verify({
+                secret: user.tempSecret,
+                encoding: 'base32',
+                token: req.body.token,
+                window: 6
+            })
+            if(isTokenValid){
+                User.findByIdAndUpdate({_id: req.params.id}, { $set: { authSecret: user.tempSecret, tempSecret: "", isAuthEnabled: true}}, {new: true})
+                    .then((newUser) => {
+                        res.json({
+                            message: 'Token is valid',
+                            user: newUser
+                        })
+                    })
+            } else {
+                res.json({message: 'Token not valid'})
+            }
+        })
+        .catch(next)
+})
+
+// ==================== disable auth ====================
+
+router.put('/removeauth/:id', verify, (req, res, next) => {
+    User.findById({_id: req.params.id})
+        .then((user) => {
+            const isTokenValid = speakeasy.totp.verify({
+                secret: user.authSecret,
+                encoding: 'base32',
+                token: req.body.token,
+                window: 6
+            })
+            if(isTokenValid){
+                User.findByIdAndUpdate({_id: req.params.id}, { $set: { authSecret: "", isAuthEnabled: false}}, {new: true})
+                .then((newUser) => {
+                    res.json({
+                        message: "Authenticator Removed",
+                        user: newUser
+                    })
+                })
+            } else {
+                res.json({message: 'Token not valid'})
+            }
+        })
+        .catch(next)
+})
 //             _   _                   
 //            | | | |___  ___ _ __ ___ 
 //            | | | / __|/ _ \ '__/ __|
@@ -215,7 +286,7 @@ router.post('/sendsmscode', (req, res) => {
 
 // ==================== Text-Verification (verify-code) =================
 
-router.put('/checksmscode', (req, res) => {
+router.put('/checksmscode/:id', (req, res) => {
 
     const input = {
         code: req.body.code,
@@ -224,14 +295,99 @@ router.put('/checksmscode', (req, res) => {
     api.checkPhoneVerificationCodeTFA(input)
         .then((data) => {
             if(data === null){
-                console.log(data)
-                res.json({"status": 200})
+                User.findByIdAndUpdate({_id: req.params.id}, { $set: { isSmsVerified: true, phone:  req.body.phone}}, {new: true})
+                    .then((newUser)=> {
+                        res.json({
+                            "status": 200,
+                            user: newUser
+                        })
+                    })
             }
         })
         .catch((err) => {
             res.json(err)
         })
         
+})
+
+// ==================== Remove Phone Auth ====================
+
+router.put('/removephone/:id', (req, res) => {
+
+    const input = {
+        code: req.body.code,
+        verifyId: req.body.verifyId
+    }
+    api.checkPhoneVerificationCodeTFA(input)
+        .then((data) => {
+            if(data === null){
+                User.findByIdAndUpdate({_id: req.params.id}, { $set: { isSmsVerified: false }}, {new: true})
+                    .then((newUser)=> {
+                        res.json({
+                            "status": 200,
+                            user: newUser
+                        })
+                    })
+            } else {
+                res.json({message: 'wtf'})
+            }
+        })
+        .catch((err) => {
+            res.json(err)
+        })
+        
+})
+
+// ==================== Change Users Prefered Auth ====================
+
+router.put('/changepreferedauth/:id', verify, (req, res, next) => {
+    User.findById({_id: req.params.id})
+        .then((user) => {
+            if(req.body.preferedAuth == 1){
+                // Authenticator
+                if(user.isAuthEnabled){
+                    // set the prefered method on user to 1
+                    User.findByIdAndUpdate({_id: req.params.id}, { $set: { preferedAuth: 1 } }, {new: true})
+                        .then((newUser) => {
+                            res.json({
+                                status: 200,
+                                message: 'Saved',
+                                user: newUser
+                            })
+                        })
+                } else {
+                    res.json({
+                        status: 400,
+                        message: 'You do not have Authenticator enabled'
+                    })
+                }
+            } else if(req.body.preferedAuth == 2){
+                // SMS 
+                if(user.isSmsVerified){
+                    // set the prefered method on user to 2
+                    // respond 200
+                    User.findByIdAndUpdate({_id: req.params.id}, { $set: { preferedAuth: 2 }}, {new: true})
+                        .then((newUser) => {
+                            res.json({
+                                status: 200,
+                                message: 'Saved',
+                                user: newUser
+                            })
+                        })
+                } else {
+                    res.json({
+                        status: 400,
+                        message: 'You do not have Phone Verification enabled'
+                    })
+                }
+            } else {
+                res.json({
+                    status: 400,
+                    message: 'Not a valid option'
+                })
+            }
+        })
+        .catch(next)
 })
 
 // ==================== User logout ====================

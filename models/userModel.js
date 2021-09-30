@@ -67,7 +67,13 @@ const userSchema = new mongoose.Schema({
     refreshTokens: [String],
     profilePicURL: String,
     phone: Number,
-    smsOnLogin: {type: Boolean, default: false}
+    tempSecret: String,
+    authSecret: String,
+    isAuthEnabled: {type: Boolean, default: false},
+    isSmsVerified: {type: Boolean, default: false},
+    useSmsLogin: {type: Boolean, default: false},
+    useAuthLogin: {type: Boolean, default: false},
+    preferedAuth: {type: Number, default: 0}
 
 },  { timestamps: true })
 
