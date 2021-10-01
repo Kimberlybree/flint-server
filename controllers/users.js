@@ -519,7 +519,7 @@ router.put('/changepreferedauth/:id', verify, (req, res, next) => {
 
 // ==================== User logout ====================
 
-router.post('/logout', verify, (req, res, next) => {
+router.post('/logout', (req, res, next) => {
     const refreshToken = req.body.token
     User.findOne({email: req.body.email})
     .then((user) => {
