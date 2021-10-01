@@ -17,8 +17,8 @@ const speakeasy = require('speakeasy');
 
 
 // add to .env
-auth.username = 'jessewatson'
-auth.password = '4fY5cj7lCBNprj81uVw4mFqJqWiy3W'
+auth.username = process.env.AUTH_USER
+auth.password = process.env.AUTH_PASS
 
 
 
@@ -33,7 +33,7 @@ auth.password = '4fY5cj7lCBNprj81uVw4mFqJqWiy3W'
 
 const generateAccessToken = (user) => {
     return jwt.sign({id: user._id, email: user.email, isAdmin: user.isAdmin},
-        'mySecretKey',
+        process.env.SECRET_KEY,
         {expiresIn: "15m"}
 )}
 
@@ -41,7 +41,7 @@ const generateAccessToken = (user) => {
 
 const generateRefreshToken = (user) => {
     return jwt.sign({id: user._id, email: user.email, isAdmin: user.isAdmin},
-        'myRefreshSecretKey',
+        process.env.R_SECRET_KEY,
         {expiresIn: "15m"}
 )}
 
@@ -52,7 +52,7 @@ const verify = (req, res, next) => {
     if(authHeader){
         const token = authHeader.split(" ")[1];
 
-        jwt.verify(token, 'mySecretKey', (err, user) => {
+        jwt.verify(token, process.env.SECRET_KEY, (err, user) => {
             if(err){
                 console.log(err)
                 return res.status(401).json({"message": "Token is not valid"})
@@ -79,7 +79,7 @@ router.post("/refreshtoken", (req, res) => {
             if(!dbuser.refreshTokens.includes(refreshToken)){
                 return res.status(403).json({"message": "Refresh Token is not valid"})
             }
-            jwt.verify(refreshToken, 'myRefreshSecretKey', (err, user) => {
+            jwt.verify(refreshToken, process.env.R_SECRET_KEY, (err, user) => {
                 // if err, console.log the err
                 if(err){
                     console.log(err)
