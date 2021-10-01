@@ -566,10 +566,21 @@ router.put('/uploadimage/:id', verify, (req, res, next) => {
 
 // ==================== Delete a User and all related data ====================
 
-router.delete('/:id', verify, (req, res) => {
+router.delete('/:id', verify, (req, res, next) => {
     if(req.user.id === req.params.id || req.user.isAdmin){
-        User.findOneAndDelete({_id: req.params.id})
-        .then((user) => res.status(200).json(user))
+        User.findOne({_id: req.params.id})
+        .then( async (user) => {
+            const match = await bcrypt.compare(req.body.password, user.password)
+            if(match){
+                User.findOneAndDelete({_id: req.params.id})
+                    .then(() => {
+                        res.json({message: 'User Deleted'})
+                    })
+                    .catch((err) => console.log(err))
+            } else {
+                res.json({message: 'Incorrect Password'})
+            }
+        })
         .catch(next)
     } else {
         res.status(403).json({"message": "You are not allowed to delete this user"})
